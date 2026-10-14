@@ -46,7 +46,7 @@
     var(--paper);
 }
 .reel-card { box-shadow: 0 40px 80px -30px rgba(40, 30, 110, .5), 0 0 0 1px rgba(255,255,255,.6); background: #17142e; }
-.reel-card::after { background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(17, 14, 36, .72) 100%); }
+.reel-card::after { background: linear-gradient(180deg, rgba(0,0,0,0) 42%, rgba(17, 14, 36, .35) 64%, rgba(17, 14, 36, .86) 100%); }
 .reel-card__rec::before, .wall__tag i { background: #cc1824; box-shadow: 0 0 0 4px rgba(204, 24, 36, .22); }
 .client-word { color: #b3b0c6; }
 .wall figure { background: #e8e6f1; }

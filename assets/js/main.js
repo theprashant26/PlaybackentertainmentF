@@ -87,7 +87,10 @@
     const w = window.innerWidth;
     const mobile = w < 768, tablet = w < 992;
     return {
-      hero:   { count: mobile ? 20 : 26, size: mobile ? 92 : tablet ? 118 : Math.min(190, w * .12), radius: mobile ? Math.min(140, w * .36) : tablet ? 215 : Math.min(360, w * .24), from: 150, to: 395, fade: 6, ramp: [0, 1] },
+      // desktop: a big ring beside the headline; phone/tablet: a crown arcing over the reel card
+      hero: tablet
+        ? { count: mobile ? 17 : 21, size: mobile ? 84 : 112, radius: mobile ? Math.min(132, w * .34) : 210, from: 180, to: 360, fade: 2, ramp: [0, 1] }
+        : { count: 26, size: Math.min(190, w * .12), radius: Math.min(360, w * .24), from: 150, to: 395, fade: 6, ramp: [0, 1] },
       cta:    { count: mobile ? 14 : 22, size: mobile ? 90 : 150, radius: mobile ? 140 : 260, from: 165, to: 345, fade: 3, ramp: [.25, .95] },
       'side-l': { count: mobile ? 10 : 14, size: mobile ? 100 : 150, radius: mobile ? 170 : 260, from: 262, to: 358, fade: 3, ramp: [0, .45] },
       'side-r': { count: mobile ? 10 : 14, size: mobile ? 100 : 150, radius: mobile ? 170 : 260, from: 82, to: 178, fade: 3, ramp: [.4, .9] },

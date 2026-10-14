@@ -305,9 +305,9 @@ p { margin: 0; }
 .reel-card img.is-active { opacity: 1; }
 .reel-card::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(18,10,20,.7) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 42%, rgba(18,10,20,.35) 64%, rgba(18,10,20,.85) 100%);
 }
-.reel-card__meta { position: absolute; left: 22px; right: 22px; bottom: 20px; z-index: 2; color: #fff; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+.reel-card__meta { text-shadow: 0 1px 12px rgba(0,0,0,.35); position: absolute; left: 22px; right: 22px; bottom: 20px; z-index: 2; color: #fff; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
 .reel-card__meta small { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
 .reel-card__meta strong { font-family: var(--font-head); font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
 .reel-card__rec { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .1em; }
@@ -853,6 +853,33 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
   .marquee__track { animation: none; }
+}
+
+/* Hero visual on phones & tablets: ribbon crown over a full-width reel card, stat chips underneath */
+@media (max-width: 991.98px) {
+  .hero__visual {
+    height: auto; max-height: none; aspect-ratio: auto;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    padding: 250px 0 0; justify-items: stretch; align-items: stretch;
+  }
+  .hero__visual > .ribbon { left: 50%; top: 285px; }
+  .reel-card { grid-column: 1 / -1; justify-self: center; width: min(100%, 440px); transform: none; }
+  .float-chip { position: relative; inset: auto; }
+  .float-chip--a, .float-chip--b, .float-chip--c { left: auto; right: auto; top: auto; bottom: auto; }
+  .float-chip--c { display: none; }
+  .float-chip--a { justify-self: end; width: min(100%, 214px); }
+  .float-chip--b { justify-self: start; width: min(100%, 214px); }
+}
+@media (max-width: 767.98px) {
+  .hero__visual { padding-top: 168px; gap: 10px; }
+  .hero__visual > .ribbon { left: 50%; top: 198px; }
+  .reel-card { width: 100%; aspect-ratio: 5 / 6; }
+  .float-chip--a, .float-chip--b { width: 100%; justify-self: stretch; }
+  .float-chip { padding: 10px 12px 10px 10px; gap: 10px; }
+  .float-chip small { white-space: nowrap; }
+}
+@media (max-width: 359.98px) {
+  .float-chip .avatars img:nth-child(3) { display: none; }
 }
 
 /* Comfortable tap targets on touch screens */
