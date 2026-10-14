@@ -71,7 +71,8 @@
      Rounded glass panes arranged on an arc, coloured along an
      orange → red → pink → violet ramp, with a travelling wave.
   --------------------------------------------------------- */
-  const RAMP = [
+  // A page can supply its own colours (optiontwo.html uses the logo palette)
+  const RAMP = window.PB_RIBBON_RAMP || [
     [255, 176, 32], [255, 92, 32], [255, 52, 72], [236, 40, 138],
     [176, 52, 214], [139, 61, 255], [214, 40, 160], [255, 52, 72]
   ];
