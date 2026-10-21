@@ -1,0 +1,3 @@
+# Design preview: not for indexing. Set PREVIEW = False in _build/data.py for launch.
+User-agent: *
+Disallow: /
