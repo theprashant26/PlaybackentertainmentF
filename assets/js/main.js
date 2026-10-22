@@ -397,7 +397,8 @@
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
 
-  if (window.Lenis && !reduceMotion) {
+  // Smooth scrolling only with a mouse/trackpad; phones keep native scrolling (faster, lighter)
+  if (window.Lenis && !reduceMotion && finePointer) {
     lenis = new Lenis({ duration: 1.15, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -486,27 +487,33 @@
       const c2 = rampAt(lerp(cfg.ramp[0], cfg.ramp[1], k) + .12);
       const fadeIdx = cfg.reverse ? cfg.count - 1 - i : i;
       const o = fadeIdx < cfg.fade ? .12 + (fadeIdx / cfg.fade) * .75 : 1;
+      const pos = document.createElement('i');
+      pos.className = 'pane-pos';
+      pos.style.cssText = `transform:rotate(${lerp(cfg.from, cfg.to, t).toFixed(2)}deg) translateX(${cfg.radius}px);z-index:${i}`;
       const p = document.createElement('i');
       p.className = 'pane';
-      p.style.cssText = `--s:${cfg.size}px;--a:${lerp(cfg.from, cfg.to, t)}deg;--r:${cfg.radius}px;--c:${c.join(',')};--c2:${c2.join(',')};--o:${o};--tilt:62deg;z-index:${i}`;
-      ring.appendChild(p);
+      p.style.cssText = `--s:${cfg.size}px;--c:${c.join(',')};--c2:${c2.join(',')};--o:${o};animation-delay:${(-i * .09).toFixed(2)}s`;
+      pos.appendChild(p);
+      ring.appendChild(pos);
       panes.push(p);
     }
-    const item = { el, ring, panes, cfg, tweens: [] };
+    const item = { el, ring, panes, cfg };
     ribbons.push(item);
     return item;
   };
 
+  // The wave runs as a CSS animation on transform only, so the GPU does the work and the
+  // main thread stays free; it pauses whenever the ribbon is off-screen.
+  const ribbonIO = 'IntersectionObserver' in window
+    ? new IntersectionObserver(entries => entries.forEach(e => e.target.classList.toggle('is-paused', !e.isIntersecting)), { rootMargin: '100px' })
+    : null;
+  // Desktop gets the full pane-by-pane wave; phones and tablets get a gentle sway of the
+  // whole ring (one element), which keeps the look while saving battery and CPU.
   const animateRibbon = (item) => {
     if (reduceMotion) return;
-    const { panes, ring } = item;
-    item.tweens.push(gsap.fromTo(panes, { '--tilt': '50deg' }, { '--tilt': '70deg', duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: .09, from: 'start' } }));
-    item.tweens.push(gsap.fromTo(panes, { '--twist': '-10deg' }, { '--twist': '10deg', duration: 3.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: .07, from: 'end' } }));
-    item.tweens.push(gsap.to(ring, { rotation: 8, duration: 9, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
-    item.st = ScrollTrigger.create({
-      trigger: item.el.parentElement, start: 'top bottom', end: 'bottom top',
-      onToggle: self => item.tweens.forEach(tw => self.isActive ? tw.resume() : tw.pause())
-    });
+    const full = finePointer && window.innerWidth >= 992;
+    item.el.classList.add(full ? 'is-live' : 'is-live-lite');
+    ribbonIO?.observe(item.el);
   };
 
   // On small screens the hero ribbon frames the reel card instead of the headline
@@ -517,9 +524,22 @@
   };
   placeHeroRibbon();
 
+  // Hero ribbons are built right away; the rest are built only when you scroll near them,
+  // which keeps the first second after page load free for taps and scrolling.
+  const lazyRibbonIO = 'IntersectionObserver' in window
+    ? new IntersectionObserver(entries => entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        lazyRibbonIO.unobserve(e.target);
+        const r = buildRibbon(e.target);
+        if (r) animateRibbon(r);
+      }), { rootMargin: '500px 0px' })
+    : null;
   $$('[data-ribbon]').forEach(el => {
+    const key = el.dataset.ribbon;
+    const immediate = key === 'hero' || key === 'page' || !lazyRibbonIO;
+    if (!immediate) { lazyRibbonIO.observe(el); return; }
     const r = buildRibbon(el);
-    if (r && el.dataset.ribbon !== 'hero' && el.dataset.ribbon !== 'page') animateRibbon(r);
+    if (r && key !== 'hero' && key !== 'page') animateRibbon(r);
   });
   const heroRibbon = ribbons.find(r => r.el.dataset.ribbon === 'hero');
   const pageRibbon = ribbons.find(r => r.el.dataset.ribbon === 'page');
@@ -530,8 +550,8 @@
     lastW = window.innerWidth;
     placeHeroRibbon();
     if (window.innerWidth >= 1200) closeMenu();
-    ribbons.splice(0).forEach(r => { r.tweens.forEach(t => t.kill()); r.st?.kill(); });
-    $$('[data-ribbon]').forEach(el => { const r = buildRibbon(el); if (r) animateRibbon(r); });
+    ribbons.splice(0).forEach(r => { ribbonIO?.unobserve(r.el); r.el.classList.remove('is-live', 'is-live-lite'); });
+    $$('[data-ribbon]').filter(el => el.firstChild).forEach(el => { const r = buildRibbon(el); if (r) animateRibbon(r); });
   });
 
   /* ---------------------------------------------------------
@@ -564,19 +584,14 @@
     const DURATION = 3.6;
     const play = () => {
       const img = imgs[idx];
-      gsap.set(imgs, { zIndex: 0 });
-      gsap.set(img, { zIndex: 1 });
-      gsap.fromTo(img, { opacity: 0, scale: 1.18 }, { opacity: 1, scale: 1.02, duration: 1.4, ease: 'power3.out' });
-      imgs.forEach((im, i) => i !== idx && im.classList.remove('is-active'));
-      img.classList.add('is-active');
+      imgs.forEach((im, i) => im.classList.toggle('is-active', i === idx));
       cat.innerHTML = img.dataset.cat || '';
       title.innerHTML = img.dataset.title || '';
       gsap.fromTo([cat, title], { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .7, stagger: .06, ease: 'power3.out' });
-      bars.forEach((b, i) => gsap.set(b, { '--p': i < idx ? 1 : 0 }));
-      gsap.fromTo(bars[idx], { '--p': 0 }, {
-        '--p': 1, duration: DURATION, ease: 'none',
-        onComplete: () => { idx = (idx + 1) % imgs.length; if (idx === 0) bars.forEach(b => gsap.set(b, { '--p': 0 })); play(); }
-      });
+      bars.forEach((b, i) => { b.classList.toggle('is-done', i < idx); b.classList.remove('is-run'); });
+      void bars[idx].offsetWidth;                      // restart the CSS animation
+      bars[idx].classList.add('is-run');
+      setTimeout(() => { idx = (idx + 1) % imgs.length; play(); }, DURATION * 1000);
     };
     if (reduceMotion) return;
     play();
@@ -590,8 +605,9 @@
       .from('[data-float]', { y: 40, opacity: 0, scale: .9, duration: 1.1, stagger: .12 }, '-=1.1')
       .from('.nav__bar', { y: -30, opacity: 0, duration: 1, clearProps: 'transform,opacity' }, '-=1.4');
     if (heroRibbon) {
-      tl.from(heroRibbon.panes, { opacity: 0, scale: .4, duration: 1.2, stagger: .035, ease: 'back.out(1.6)' }, '-=1.8');
-      tl.add(() => animateRibbon(heroRibbon), '-=0.4');
+      animateRibbon(heroRibbon);
+      tl.from(heroRibbon.panes, { opacity: 0, duration: .9, stagger: .025, ease: 'power2.out' }, '-=1.6')
+        .from(heroRibbon.ring, { scale: .7, duration: 1.2, ease: 'back.out(1.4)' }, '<');
     }
     $$('.hero [data-count]').forEach(countUp);
     startReel();
@@ -601,11 +617,12 @@
   const pageIntro = () => {
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
     const title = $('[data-hero-title]');
-    if (title) tl.from(title, { y: 40, opacity: 0, duration: 1.2 });
-    tl.from('[data-hero-fade]', { y: 26, opacity: 0, duration: 1, stagger: .08 }, title ? '-=0.9' : 0);
+    if (title) tl.from(title, { y: 28, opacity: 0, duration: .8 });
+    tl.from('[data-hero-fade]', { y: 18, opacity: 0, duration: .7, stagger: .06 }, title ? '-=0.6' : 0);
     if (pageRibbon) {
-      tl.from(pageRibbon.panes, { opacity: 0, scale: .4, duration: 1.1, stagger: .03, ease: 'back.out(1.6)' }, '-=1');
-      tl.add(() => animateRibbon(pageRibbon), '-=0.3');
+      animateRibbon(pageRibbon);
+      tl.from(pageRibbon.panes, { opacity: 0, duration: .7, stagger: .02, ease: 'power2.out' }, '-=.7')
+        .from(pageRibbon.ring, { scale: .75, duration: 1, ease: 'back.out(1.4)' }, '<');
     }
   };
 
@@ -619,19 +636,22 @@
       if (location.hash) setTimeout(() => scrollToTarget(document.getElementById(location.hash.slice(1)), true), 50);
     };
     if (!isHome) { if (!reduceMotion) pageIntro(); finish(); return; }
-    if (!pre || reduceMotion) { finish(); heroIntro(); return; }
+    // The intro screen plays once per browser session
+    let seen = false;
+    try { seen = sessionStorage.getItem('pb_intro') === '1'; sessionStorage.setItem('pb_intro', '1'); } catch (e) { /* storage blocked */ }
+    if (!pre || reduceMotion || seen) { finish(); heroIntro(); return; }
     const counter = { v: 0 };
     const countEl = $('.preloader__count', pre);
     const tl = gsap.timeline();
-    tl.to('.preloader__word span', { y: 0, duration: .9, ease: 'expo.out' })
-      .to(counter, { v: 100, duration: 1.1, ease: 'power2.inOut', onUpdate: () => (countEl.textContent = Math.round(counter.v)) }, 0.1)
-      .to('.preloader__bar', { scaleX: 1, duration: 1.1, ease: 'power2.inOut' }, 0.1)
-      .to('.preloader__word span', { y: '-110%', duration: .6, ease: 'expo.in' }, '+=0.05')
-      .to(pre, { yPercent: -100, duration: 1, ease: 'expo.inOut' }, '-=0.15')
-      .add(heroIntro, '-=0.65')
+    tl.to('.preloader__word span', { y: 0, duration: .6, ease: 'expo.out' })
+      .to(counter, { v: 100, duration: .7, ease: 'power2.inOut', onUpdate: () => (countEl.textContent = Math.round(counter.v)) }, 0.05)
+      .to('.preloader__bar', { scaleX: 1, duration: .7, ease: 'power2.inOut' }, 0.05)
+      .to('.preloader__word span', { y: '-110%', duration: .45, ease: 'expo.in' }, '+=0.02')
+      .to(pre, { yPercent: -100, duration: .75, ease: 'expo.inOut' }, '-=0.1')
+      .add(heroIntro, '-=0.5')
       .add(finish);
   };
-  const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, isHome ? 1800 : 600))]) : Promise.resolve();
+  const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, isHome ? 900 : 250))]) : Promise.resolve();
   fontsReady.then(runPreloader);
 
   if (isHome && finePointer && !reduceMotion) {
@@ -686,7 +706,7 @@
       });
       past.concat(inView).forEach(el => pending.delete(el));
       if (past.length) gsap.set(past, { opacity: 1, y: 0, overwrite: true });
-      if (inView.length) gsap.to(inView, { opacity: 1, y: 0, duration: 1, stagger: Math.min(.08, .5 / inView.length), ease: 'expo.out', overwrite: true });
+      if (inView.length) gsap.to(inView, { opacity: 1, y: 0, duration: .7, stagger: Math.min(.06, .35 / inView.length), ease: 'power3.out', overwrite: true });
     };
     const requestCheck = () => { if (!ticking) { ticking = true; requestAnimationFrame(checkReveals); } };
     window.addEventListener('scroll', requestCheck, { passive: true });
@@ -700,6 +720,12 @@
     document.addEventListener('load', requestCheck, true);   // any image/iframe finishing
     if ('ResizeObserver' in window) new ResizeObserver(requestCheck).observe(document.body);
     requestCheck();
+  }
+
+  // Looping CSS animations (marquees, photo wall, seal) pause while off-screen
+  if ('IntersectionObserver' in window) {
+    const loopIO = new IntersectionObserver(entries => entries.forEach(e => e.target.classList.toggle('anim-paused', !e.isIntersecting)), { rootMargin: '80px' });
+    $$('.marquee, .wall, .seal').forEach(el => loopIO.observe(el));
   }
 
   // Intro photo wall: duplicate each column for a seamless loop

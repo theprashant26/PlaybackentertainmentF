@@ -779,7 +779,7 @@ p { margin: 0; }
 @keyframes ping { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.6); opacity: 0; } }
 
 /* reveal helpers (JS sets initial state; keep visible if JS fails) */
-.js .reveal { opacity: 0; transform: translateY(40px); }
+.js .reveal { opacity: 0; transform: translateY(24px); }
 
 /* =========================================================
    Responsive
@@ -1654,3 +1654,41 @@ p { margin: 0; }
   .filters { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; gap: 8px; }
   .chip { flex-shrink: 1; padding: 8px 14px; font-size: 13px; }
 }
+
+/* ===== Performance: GPU-driven ribbon wave (no per-frame JavaScript) ===== */
+.pane-pos { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.pane-pos > .pane { transform: rotateX(62deg); }
+.ribbon.is-live .pane { animation: pane-wave 2.6s ease-in-out infinite alternate; will-change: transform; }
+.ribbon.is-live .ribbon__ring { animation: ring-sway 9s ease-in-out infinite alternate; }
+.ribbon.is-paused .pane, .ribbon.is-paused .ribbon__ring { animation-play-state: paused; }
+@keyframes pane-wave {
+  from { transform: rotateX(50deg) rotateY(-10deg); }
+  to   { transform: rotateX(70deg) rotateY(10deg); }
+}
+.reel-card__progress i::after { transform: scaleX(0); }
+.reel-card__progress i.is-done::after { transform: scaleX(1); }
+.reel-card__progress i.is-run::after { animation: reel-bar 3.6s linear forwards; }
+@keyframes reel-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ring-sway { from { transform: rotate(0deg); } to { transform: rotate(8deg); } }
+
+/* Repeat visits in the same session skip the intro screen */
+.pb-seen .preloader { display: none; }
+
+/* Category chips: rows stretch edge to edge on phones */
+@media (max-width: 767.98px) {
+  .filters .chip { flex: 1 1 auto; text-align: center; }
+}
+
+/* Phones/tablets: sway the whole ribbon ring only (cheap), no per-pane wave */
+.ribbon.is-live-lite .ribbon__ring { animation: ring-sway 9s ease-in-out infinite alternate; }
+.ribbon.is-paused.is-live-lite .ribbon__ring { animation-play-state: paused; }
+/* Hero slideshow crossfade handled by CSS (GPU) instead of JavaScript */
+.reel-card img { z-index: 0; transition: opacity 1.2s cubic-bezier(.22, 1, .36, 1), transform 4.8s linear; }
+.reel-card img.is-active { z-index: 1; opacity: 1; transform: scale(1.02); }
+
+/* Looping animations: own GPU layers, paused when off-screen */
+.marquee__track, .wall__track, .seal svg { will-change: transform; }
+.wa-float::before, .reel-card__rec::before, .dash__live::before, .wall__tag i { will-change: transform, opacity; }
+.marquee.anim-paused .marquee__track, .wall.anim-paused .wall__track, .seal.anim-paused svg { animation-play-state: paused; }
+
+.hero__badge b { white-space: nowrap; flex-shrink: 0; }

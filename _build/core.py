@@ -269,7 +269,7 @@ def page(path, *, title, desc, body, active='', og_image='assets/img/hero-dance.
 {CDN_CSS}
 {SWIPER_CSS if swiper else ''}
   <link rel="stylesheet" href="~/assets/css/style.css">
-  <script>document.documentElement.classList.add('js');</script>{ld_html}
+  <script>document.documentElement.classList.add('js');try{{if(sessionStorage.getItem('pb_intro')==='1')document.documentElement.classList.add('pb-seen')}}catch(e){{}}</script>{ld_html}
 </head>
 <body{f' class="{cls}"' if cls else ''}>{pre}
   <div class="cursor" data-label=""></div>
