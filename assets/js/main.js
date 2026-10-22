@@ -41,6 +41,19 @@
     $('.preloader')?.remove();
   }
 
+  // Below-the-fold photo groups (logo strip, photo wall) use data-src and load only when the
+  // group comes near the screen, so the first paint isn't competing with dozens of images.
+  const showImg = img => { if (img.dataset.srcset) img.srcset = img.dataset.srcset; img.src = img.dataset.src; img.removeAttribute('data-src'); };
+  const deferGroups = [...new Set($$('img[data-src]').map(i => i.closest('.marquee, .wall, .reel-card') || i))].filter(g => !g.classList.contains('reel-card'));
+  if ('IntersectionObserver' in window) {
+    const imgIO = new IntersectionObserver(entries => entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      imgIO.unobserve(e.target);
+      (e.target.matches('img') ? [e.target] : $$('img[data-src]', e.target)).forEach(showImg);
+    }), { rootMargin: '600px 0px' });
+    deferGroups.forEach(g => imgIO.observe(g));
+  } else deferGroups.forEach(g => (g.matches('img') ? [g] : $$('img[data-src]', g)).forEach(showImg));
+
   /* =========================================================
      Navigation (works with or without GSAP)
   ========================================================= */
@@ -557,10 +570,15 @@
   /* ---------------------------------------------------------
      Counters (real numbers are in the HTML; animate from zero)
   --------------------------------------------------------- */
+  const numFmt = new Intl.NumberFormat('en-IN');
   function countUp(el) {
     const end = parseFloat(el.dataset.count);
     const obj = { v: 0 };
-    gsap.to(obj, { v: end, duration: reduceMotion ? 0 : 2.2, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(obj.v).toLocaleString('en-IN')) });
+    let last = -1;
+    gsap.to(obj, { v: end, duration: reduceMotion ? 0 : 2.2, ease: 'power3.out', onUpdate: () => {
+      const v = Math.round(obj.v);
+      if (v !== last) { last = v; el.textContent = numFmt.format(v); }   // only touch the DOM when the number changes
+    } });
   }
   const counterEls = $$('.stats [data-count]');
   if ('IntersectionObserver' in window) {
@@ -577,6 +595,9 @@
   const startReel = () => {
     if (!reel) return;
     const imgs = $$('img', reel);
+    // Later slides load once the page has finished loading
+    const loadSlides = () => $$('img[data-src]', reel).forEach(showImg);
+    if (document.readyState === 'complete') loadSlides(); else window.addEventListener('load', loadSlides, { once: true });
     const bars = $$('.reel-card__progress i', reel);
     const cat = $('[data-reel-cat]', reel);
     const title = $('[data-reel-title]', reel);
@@ -584,6 +605,7 @@
     const DURATION = 3.6;
     const play = () => {
       const img = imgs[idx];
+      if (img.dataset.src) showImg(img);
       imgs.forEach((im, i) => im.classList.toggle('is-active', i === idx));
       cat.innerHTML = img.dataset.cat || '';
       title.innerHTML = img.dataset.title || '';
@@ -597,10 +619,16 @@
     play();
   };
 
+  // Phones: hero text is visible from the first paint and only slides a little (no fade),
+  // so the main content shows up immediately instead of waiting for the animation.
+  const heroFade = (y, duration, stagger) => (finePointer && window.innerWidth >= 992)
+    ? { y, opacity: 0, duration, stagger }
+    : { y: Math.round(y / 3), duration: duration * .8, stagger };
+
   const heroIntro = () => {
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
     tl.from('.hero__title .line > span', { yPercent: 115, rotate: 4, duration: 1.4, stagger: .1 })
-      .from('[data-hero-fade]', { y: 30, opacity: 0, duration: 1.1, stagger: .08 }, '-=1.1')
+      .from('[data-hero-fade]', heroFade(30, 1.1, .08), '-=1.1')
       .from('.reel-card', { clipPath: 'inset(18% 18% 18% 18% round 32px)', scale: .9, duration: 1.6 }, '-=1.3')
       .from('[data-float]', { y: 40, opacity: 0, scale: .9, duration: 1.1, stagger: .12 }, '-=1.1')
       .from('.nav__bar', { y: -30, opacity: 0, duration: 1, clearProps: 'transform,opacity' }, '-=1.4');
@@ -617,8 +645,8 @@
   const pageIntro = () => {
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
     const title = $('[data-hero-title]');
-    if (title) tl.from(title, { y: 28, opacity: 0, duration: .8 });
-    tl.from('[data-hero-fade]', { y: 18, opacity: 0, duration: .7, stagger: .06 }, title ? '-=0.6' : 0);
+    if (title) tl.from(title, heroFade(28, .8, 0));
+    tl.from('[data-hero-fade]', heroFade(18, .7, .06), title ? '-=0.6' : 0);
     if (pageRibbon) {
       animateRibbon(pageRibbon);
       tl.from(pageRibbon.panes, { opacity: 0, duration: .7, stagger: .02, ease: 'power2.out' }, '-=.7')
@@ -628,18 +656,21 @@
 
   const runPreloader = () => {
     const pre = $('.preloader');
+    let played = false;
     const finish = () => {
       document.body.classList.remove('is-loading');
       pre?.remove();
       lenis?.start();
-      ScrollTrigger.refresh();
+      if (played) ScrollTrigger.refresh();   // layout only changed if the intro screen ran
       if (location.hash) setTimeout(() => scrollToTarget(document.getElementById(location.hash.slice(1)), true), 50);
     };
     if (!isHome) { if (!reduceMotion) pageIntro(); finish(); return; }
     // The intro screen plays once per browser session
     let seen = false;
     try { seen = sessionStorage.getItem('pb_intro') === '1'; sessionStorage.setItem('pb_intro', '1'); } catch (e) { /* storage blocked */ }
-    if (!pre || reduceMotion || seen) { finish(); heroIntro(); return; }
+    const desktop = finePointer && window.innerWidth >= 992;
+    if (!pre || reduceMotion || seen || !desktop) { finish(); heroIntro(); return; }
+    played = true;
     const counter = { v: 0 };
     const countEl = $('.preloader__count', pre);
     const tl = gsap.timeline();
@@ -651,7 +682,7 @@
       .add(heroIntro, '-=0.5')
       .add(finish);
   };
-  const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, isHome ? 900 : 250))]) : Promise.resolve();
+  const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, isHome && finePointer ? 700 : 200))]) : Promise.resolve();
   fontsReady.then(runPreloader);
 
   if (isHome && finePointer && !reduceMotion) {
@@ -881,5 +912,4 @@
     }
   }
 
-  window.addEventListener('load', () => ScrollTrigger.refresh());
 })();

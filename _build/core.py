@@ -6,20 +6,23 @@ GitHub Pages (project sub-path), on the final domain and on a local server.
 """
 import html as _html
 import json
+import os
+import re
+from PIL import Image
 from data import SITE, DIVISIONS, wa_link, VIDEO_BY_ID, yt_thumb, SERVICE_OPTIONS, PREVIEW
+
+SITE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def esc(s):
     return _html.escape(s or '', quote=True)
 
-CDN_CSS = '''  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preconnect" href="https://i.ytimg.com">
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Stack+Sans+Headline:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">'''
+# Fonts, icons and libraries are self-hosted (see vendor.py): one origin, no extra connections
+CDN_CSS = '''  <link rel="preload" href="~/assets/fonts/stack-sans-headline-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="~/assets/fonts/instrument-sans-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="~/assets/fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="~/assets/fonts/bootstrap-icons-subset.woff2" as="font" type="font/woff2" crossorigin>'''
 
-SWIPER_CSS = '  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.css">'
+SWIPER_CSS = '''  <link rel="stylesheet" href="~/assets/vendor/swiper-bundle.min.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="~/assets/vendor/swiper-bundle.min.css"></noscript>'''
 
 SCRIPTS = '''  <script>
     // Safety net: if the animation libraries are slow or blocked, show the page anyway
@@ -28,16 +31,17 @@ SCRIPTS = '''  <script>
       if (d.classList.contains('js-ready')) return;
       d.classList.remove('js'); document.body.classList.remove('is-loading');
       var p = document.querySelector('.preloader'); if (p) p.remove();
+      [].forEach.call(document.querySelectorAll('img[data-src]'), function (i) {{ if (i.dataset.srcset) i.srcset = i.dataset.srcset; i.src = i.dataset.src; }});
     }}, 5000);
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script defer src="~/assets/vendor/gsap.min.js"></script>
+  <script defer src="~/assets/vendor/ScrollTrigger.min.js"></script>
+  <script defer src="~/assets/vendor/lenis.min.js"></script>
 {swiper}  <script>
     // Glass ribbon coloured with the logo palette (indigo "p" flowing into the red "b")
     window.PB_RIBBON_RAMP = [[150, 140, 200], [120, 108, 168], [84, 72, 156], [60, 48, 144], [128, 34, 96], [204, 24, 36], [216, 72, 60], [216, 120, 96]];
   </script>
-  <script src="~/assets/js/main.js"></script>'''
+  <script defer src="~/assets/js/main.js"></script>'''
 
 # ---------------------------------------------------------------------------
 # Navigation data (handover section 2)
@@ -182,11 +186,11 @@ def footer():
           <p class="footer__tag serif grad-text">{esc(SITE['tagline'])}</p>
           <div class="socials">{socials}</div>
         </div>
-        <div><h5>Quick Links</h5><ul>{col(ql)}</ul></div>
-        <div><h5>Media &amp; Digital</h5><ul>{col(media)}</ul></div>
-        <div><h5>Events &amp; Production</h5><ul>{col(events)}</ul></div>
+        <div><h2 class="footer__h">Quick Links</h2><ul>{col(ql)}</ul></div>
+        <div><h2 class="footer__h">Media &amp; Digital</h2><ul>{col(media)}</ul></div>
+        <div><h2 class="footer__h">Events &amp; Production</h2><ul>{col(events)}</ul></div>
         <div class="footer__contact">
-          <h5>Contact</h5>
+          <h2 class="footer__h">Contact</h2>
           <ul>
             <li><b>{esc(SITE['name'])}</b><br>{esc(SITE['location'])}</li>
             <li><a href="tel:{SITE['phone1_tel']}">{SITE['phone1_disp']}</a></li>
@@ -246,7 +250,7 @@ def page(path, *, title, desc, body, active='', og_image='assets/img/hero-dance.
     <div class="preloader__bar"></div>
   </div>'''
     cls = ' '.join(c for c in [('is-loading' if home else ''), body_class] if c)
-    swiper_js = '  <script src="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.js"></script>\n' if swiper else ''
+    swiper_js = '  <script defer src="~/assets/vendor/swiper-bundle.min.js"></script>\n' if swiper else ''
     scripts = SCRIPTS.format(swiper=swiper_js)
     robots_meta = '\n  <meta name="robots" content="noindex, nofollow">' if PREVIEW else ''
     doc = f'''<!doctype html>
@@ -269,7 +273,7 @@ def page(path, *, title, desc, body, active='', og_image='assets/img/hero-dance.
 {CDN_CSS}
 {SWIPER_CSS if swiper else ''}
   <link rel="stylesheet" href="~/assets/css/style.css">
-  <script>document.documentElement.classList.add('js');try{{if(sessionStorage.getItem('pb_intro')==='1')document.documentElement.classList.add('pb-seen')}}catch(e){{}}</script>{ld_html}
+  <script>document.documentElement.classList.add('js');try{{if(sessionStorage.getItem('pb_intro')==='1'||!matchMedia('(pointer:fine) and (min-width:992px)').matches)document.documentElement.classList.add('pb-seen')}}catch(e){{}}</script>{ld_html}
 </head>
 <body{f' class="{cls}"' if cls else ''}>{pre}
   <div class="cursor" data-label=""></div>
@@ -285,7 +289,29 @@ def page(path, *, title, desc, body, active='', og_image='assets/img/hero-dance.
 '''
     return path, render(doc, path)
 
+_IMG_SIZES = {}
+def _img_size(rel):
+    if rel not in _IMG_SIZES:
+        try:
+            with Image.open(os.path.join(SITE_ROOT, rel)) as im:
+                _IMG_SIZES[rel] = im.size
+        except OSError:
+            _IMG_SIZES[rel] = None
+    return _IMG_SIZES[rel]
+
+def _size_imgs(doc):
+    # Give every local <img> its real width/height so the layout never jumps while photos load
+    def fix(m):
+        tag = m.group(0)
+        if ' width=' in tag:
+            return tag
+        src = re.search(r'(?:data-src|src)="~/([^"]+)"', tag) if 'data-src="~/' in tag else re.search(r'src="~/([^"]+)"', tag)
+        size = src and _img_size(src.group(1))
+        return tag.replace('<img ', f'<img width="{size[0]}" height="{size[1]}" ', 1) if size else tag
+    return re.sub(r'<img [^>]*>', fix, doc)
+
 def render(doc, path):
+    doc = _size_imgs(doc)
     depth = path.count('/')
     root = '../' * depth
     doc = doc.replace('"~/"', '"' + (root or './') + '"')
@@ -380,7 +406,7 @@ def steps(items, icons=None):
     for i, (t, d) in enumerate(items):
         out.append(f'''<div class="step reveal">
             <div class="step__node"><span></span></div>
-            <div><h4>{t}</h4><div class="step__no">Step {i + 1:02d}</div></div>
+            <div><h3>{t}</h3><div class="step__no">Step {i + 1:02d}</div></div>
             <div class="step__card"><span class="icon-tile xs{' violet' if i % 2 else ''}"><i class="bi {icons[i % len(icons)]}"></i></span>{d}</div>
           </div>''')
     return f'''<div class="journey" style="--n:{len(items)}">

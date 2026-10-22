@@ -13,7 +13,20 @@ python _build/build.py
 This rewrites every page folder (`about-us/index.html`, `corporate-photography/index.html`,
 `portfolio/<project>/index.html`, `blog/<post>/index.html` …), plus `sitemap.xml`,
 `robots.txt` and `404.html`. Do not edit the generated HTML by hand; edit the
-source files below and rebuild. Requires Python 3.9+ (no extra packages).
+source files below and rebuild. Requires Python 3.9+ with Pillow (`pip install pillow`),
+which the build uses to write each image's width and height into the HTML.
+
+### Fonts, icons and libraries (self-hosted)
+
+GSAP, ScrollTrigger, Lenis, Swiper, the Google Fonts and a trimmed Bootstrap Icons
+font are served from `assets/vendor/` and `assets/fonts/` (one origin = faster on
+mobile). The icon font only contains the icons the site uses, so after using a new
+`bi-…` icon run:
+
+```
+pip install fonttools brotli
+python _build/vendor.py && python _build/build.py
+```
 
 ## Where things live
 

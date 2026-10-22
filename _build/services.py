@@ -630,12 +630,12 @@ def render_service(slug):
     intro_p = ''.join(f'<p class="reveal">{p}</p>' for p in s['intro'])
     side = ''
     if s.get('included') and not s.get('included_title'):
-        side = f'<aside class="glass glance reveal"><h3>What&rsquo;s included</h3>{checklist(s["included"])}</aside>'
+        side = f'<aside class="glass glance reveal"><h2 class="glance__h">What&rsquo;s included</h2>{checklist(s["included"])}</aside>'
     elif s.get('mock') or s.get('browser'):
         side = _media_mock(s)
     else:
         facts = [('bi-geo-alt-fill', SITE['region'], 'Service area'), ('bi-people-fill', '1,000+', 'Clients served'), ('bi-camera-reels-fill', '15+ years', 'Industry experience')]
-        side = '<aside class="glass glance reveal"><h3>At a glance</h3><ul class="glance__facts">' + ''.join(
+        side = '<aside class="glass glance reveal"><h2 class="glance__h">At a glance</h2><ul class="glance__facts">' + ''.join(
             f'<li><span class="icon-tile xs"><i class="bi {i}"></i></span><div><b>{a}</b><small>{b}</small></div></li>' for i, a, b in facts) + '</ul>' + \
             f'<a href="#enquire" class="btn-x btn-grad mt-3">{cta_label} <span class="ico"><i class="bi bi-arrow-down-right"></i></span></a></aside>'
     out.append(f'''    <section class="section svc-intro">
@@ -687,7 +687,7 @@ def render_service(slug):
 
     # Event categories + why
     if s.get('categories'):
-        why = ''.join(f'<div class="glass why-item reveal"><span class="icon-tile sm {["", "rose", "violet"][i % 3]}"><i class="bi bi-check2-circle"></i></span><div><h4>{w}</h4></div></div>' for i, w in enumerate(s['why']))
+        why = ''.join(f'<div class="glass why-item reveal"><span class="icon-tile sm {["", "rose", "violet"][i % 3]}"><i class="bi bi-check2-circle"></i></span><div><h3>{w}</h3></div></div>' for i, w in enumerate(s['why']))
         out.append(f'''    <section class="why">
       <div class="container-x">
         <div class="why__panel">

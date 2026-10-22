@@ -67,7 +67,7 @@ def logos_grid():
         f'<figure class="logo-card reveal"><img src="~/assets/img/clients/{s}.webp" alt="{esc(n)}" loading="lazy" decoding="async"></figure>' for s, n in CLIENTS) + '</div>'
 
 def logos_marquee():
-    items = ''.join(f'<span class="logo-chip"><img src="~/assets/img/clients/{s}.webp" alt="{esc(n)}" loading="lazy" decoding="async"></span>' for s, n in CLIENTS)
+    items = ''.join(f'<span class="logo-chip"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="~/assets/img/clients/{s}.webp" alt="{esc(n)}" width="355" height="193" loading="lazy" decoding="async"></span>' for s, n in CLIENTS)
     return f'<div class="marquee" style="--dur:60s"><div class="marquee__track marquee__track--logos">{items}</div></div>'
 
 def person_av(t):
@@ -120,7 +120,7 @@ def why_cards():
     ]
     return '<div class="why6">' + ''.join(f'''<div class="glass why-item reveal">
               <span class="icon-tile {t}"><i class="bi {i}"></i></span>
-              <div><h4>{h}</h4><p>{p}</p></div>
+              <div><h3>{h}</h3><p>{p}</p></div>
             </div>''' for i, h, p, t in items) + '</div>'
 
 def why_panel(title, sid='why', sub=None):
@@ -155,7 +155,7 @@ def home():
         ('assets/img/portrait-fashion-sm.webp', 'Outdoor portrait photograph', 'Photography', 'Portraits &amp; brands'),
     ]
     act, lazy = ' class="is-active"', ' loading="lazy"'
-    imgs = ''.join(f'<img decoding="async" src="~/{s}" alt="{a}"{act if i == 0 else lazy} data-cat="{c}" data-title="{t}">' for i, (s, a, c, t) in enumerate(reel_slides))
+    imgs = ''.join((f'<img decoding="async" src="~/{s}" alt="{a}"{act}' if i == 0 else f'<img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="~/{s}" alt="{a}"') + f' data-cat="{c}" data-title="{t}">' for i, (s, a, c, t) in enumerate(reel_slides))
     bars = '<i></i>' * len(reel_slides)
     hero = f'''    <section class="hero">
       <div class="hero__grain"></div>
@@ -225,7 +225,7 @@ def home():
               ('booth-jewel', 'Jewellery exhibition booth'), ('keynote', 'Keynote speaker on stage'), ('cake', 'Celebration cake on a decorated stage')]
     wall_b = [('crowd-hands', 'Corporate audience raising their hands'), ('mother-baby', 'Mother holding her baby at a birthday shoot'),
               ('award', 'Award being presented on stage'), ('product-sofa', 'Product shoot of a sofa bed'), ('razzmatazz', 'Team on stage at a gala night')]
-    fig = lambda lst: ''.join(f'<figure><img src="~/assets/img/{s}-sm.webp" alt="{a}" loading="lazy" decoding="async"></figure>' for s, a in lst)
+    fig = lambda lst: ''.join(f'<figure><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="~/assets/img/{s}-sm.webp" data-srcset="~/assets/img/{s}-xs.webp 480w, ~/assets/img/{s}-sm.webp 900w" sizes="(max-width: 767px) 48vw, 24vw" alt="{a}" loading="lazy" decoding="async"></figure>' for s, a in lst)
     about = f'''    <section class="section intro">
       <div class="container-x">
         <div class="intro__grid">
@@ -356,7 +356,7 @@ def home():
         sub = cat_labels(p)
         wcards.append(f'''<a href="~/portfolio/{p['slug']}/" class="work-card{wide}" data-cats="{' '.join(p['cats'])}" data-cursor="view" data-cursor-label="View">
             {img}
-            <div class="work-card__info"><div><small>{esc(sub)}</small><h4>{esc(p['title'])}</h4></div><span class="go"><i class="bi bi-arrow-right"></i></span></div>
+            <div class="work-card__info"><div><small>{esc(sub)}</small><h3>{esc(p['title'])}</h3></div><span class="go"><i class="bi bi-arrow-right"></i></span></div>
           </a>''')
     hf = ''.join(f'<button type="button" class="chip chip--dark{" is-active" if k == "all" else ""}" data-filter="{k}" aria-pressed="{"true" if k == "all" else "false"}">{l}</button>' for k, l in HOME_FILTERS)
     portfolio = f'''    <section class="work" id="work">
@@ -376,7 +376,7 @@ def home():
           <div class="work-card work-card--end">
             <span class="eyebrow" style="color:#fff">See everything</span>
             <div>
-              <h4>Explore the complete portfolio.</h4>
+              <h3>Explore the complete portfolio.</h3>
               <a href="~/portfolio/" class="btn-x mt-4" style="--bg:#fff;color:var(--ink)">Explore Complete Portfolio <span class="ico" style="background:rgba(20,18,23,.08)"><i class="bi bi-arrow-right"></i></span></a>
             </div>
           </div>
@@ -814,9 +814,9 @@ def project_page(p, idx):
           </div>
           <aside class="glass glance reveal">
             <dl class="proj-meta">{meta_html}</dl>
-            <h3 class="mt-4">Playback&rsquo;s scope</h3>
+            <h2 class="glance__h mt-4">Playback&rsquo;s scope</h2>
             {checklist([esc(x) for x in p['scope']])}
-            <h3 class="mt-4">Related services</h3>
+            <h2 class="glance__h mt-4">Related services</h2>
             <ul class="svc-links">{svc}</ul>
           </aside>
         </div>
@@ -924,6 +924,7 @@ def blog_index():
       <div class="container-x">
         {filters(BLOG_CATS, '#post-grid')}
         <p class="filter-count" aria-live="polite" data-filter-count></p>
+        <h2 class="sr-only">Articles</h2>
         <div class="bgrid" id="post-grid">{''.join(blog_card(p) for p in posts)}</div>
         <p class="empty-state" hidden>No articles in this category yet. <a href="~/blog/">View all articles</a>.</p>
       </div>
@@ -1043,7 +1044,7 @@ def careers():
           <div class="ribbon ribbon--l" data-ribbon="side-l"></div>
           <div class="ribbon ribbon--r" data-ribbon="side-r"></div>
           <h2 class="why__title reveal">Why Work With <span class="serif grad-text">Playback?</span></h2>
-          <div class="why6 why6--5">{''.join(f'<div class="glass why-item reveal"><span class="icon-tile {["", "violet", "rose"][n % 3]}"><i class="bi {i}"></i></span><div><h4>{t}</h4><p>{d}</p></div></div>' for n, (i, t, d) in enumerate(why))}</div>
+          <div class="why6 why6--5">{''.join(f'<div class="glass why-item reveal"><span class="icon-tile {["", "violet", "rose"][n % 3]}"><i class="bi {i}"></i></span><div><h3>{t}</h3><p>{d}</p></div></div>' for n, (i, t, d) in enumerate(why))}</div>
         </div>
       </div>
     </section>''',
@@ -1064,7 +1065,7 @@ def careers():
         <div class="split split--form">
           <div>
             {shead('Apply for a job', 'Take the Next Step in Your <span class="serif grad-text">Career.</span>', 'Interested in working with Playback Media &amp; Events Hub? Submit your professional details, experience, and portfolio. Our team will review your application for suitable opportunities.')}
-            <div class="glass glance reveal mt-4"><h3>Prefer to freelance?</h3><p>Register with our freelancer network to be considered for project-based assignments.</p>{btn('Join Freelancer Network', 'freelancers/', 'dark', 'bi-arrow-right')}</div>
+            <div class="glass glance reveal mt-4"><h2 class="glance__h">Prefer to freelance?</h2><p>Register with our freelancer network to be considered for project-based assignments.</p>{btn('Join Freelancer Network', 'freelancers/', 'dark', 'bi-arrow-right')}</div>
           </div>
           <div class="form-card reveal">{application}</div>
         </div>
@@ -1137,7 +1138,7 @@ def contact_page():
               lead='Whether you&rsquo;re planning a photoshoot, producing a corporate film, developing your brand online, or organizing a professional event, we&rsquo;re here to discuss your requirements. Share your project details with Playback Media &amp; Events Hub, and our team will review your enquiry and contact you regarding the next steps.',
               crumbs=[('Contact Us', None)], compact=True),
         f'''    <section class="section contact-cards">
-      <div class="container-x"><div class="cgrid cgrid--4">{chtml}</div></div>
+      <div class="container-x"><h2 class="sr-only">Ways to reach us</h2><div class="cgrid cgrid--4">{chtml}</div></div>
     </section>''',
         f'''    <section class="section" id="enquiry">
       <div class="container-x">
@@ -1206,10 +1207,10 @@ def quote_page():
         <div class="split split--quote">
           <div class="form-card reveal">{qform}</div>
           <aside class="quote__aside">
-            <div class="glass glance reveal"><h3>What happens next?</h3>
+            <div class="glass glance reveal"><h2 class="glance__h">What happens next?</h2>
               <ol class="nexts">{''.join(f'<li><span class="icon-tile xs"><i class="bi {i}"></i></span><div><b>{t}</b><small>{d}</small></div></li>' for i, t, d in nexts)}</ol>
             </div>
-            <div class="glass glance reveal mt-3"><h3>Prefer to talk?</h3>
+            <div class="glass glance reveal mt-3"><h2 class="glance__h">Prefer to talk?</h2>
               <p><a href="tel:{SITE['phone1_tel']}">{SITE['phone1_disp']}</a><br><a href="tel:{SITE['phone2_tel']}">{SITE['phone2_disp']}</a><br><a href="mailto:{SITE['email']}">{SITE['email']}</a></p>
               {btn('Chat on WhatsApp', wa_link(), 'dark', 'bi-whatsapp', ext=True)}
             </div>
