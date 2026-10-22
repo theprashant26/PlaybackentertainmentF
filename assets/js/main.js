@@ -34,6 +34,7 @@
 
   // Fail-safe: without GSAP, show everything, keep forms/menus working.
   const hasGsap = !!window.gsap;
+  if (hasGsap) document.documentElement.classList.add('js-ready');
   if (!hasGsap) {
     document.documentElement.classList.remove('js');
     document.body.classList.remove('is-loading');
@@ -218,7 +219,7 @@
     const countEl = section ? $('[data-filter-count]', section) : null;
     const empty = section ? $('.empty-state', section) : null;
     const shareable = !grid.closest('.work');
-    const apply = (key, push) => {
+    const apply = (key, push, animate = true) => {
       if (!chips.some(c => c.dataset.filter === key)) key = 'all';
       chips.forEach(c => { const on = c.dataset.filter === key; c.classList.toggle('is-active', on); c.setAttribute('aria-pressed', String(on)); });
       let shown = 0;
@@ -232,8 +233,10 @@
         countEl.textContent = key === 'all' ? `Showing all ${shown}` : `Showing ${shown} in ${label}`;
       }
       if (empty) empty.hidden = shown !== 0;
-      if (hasGsap && !reduceMotion) gsap.fromTo(items.filter(el => !el.hidden), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .5, stagger: .03, ease: 'power2.out', overwrite: true });
-      else items.forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
+      // Animate only on a user's click; on page load the normal scroll reveals handle the cards.
+      // lazy:false renders immediately, so it can never overwrite a reveal later in the same frame.
+      if (animate && hasGsap && !reduceMotion) gsap.fromTo(items.filter(el => !el.hidden), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .5, stagger: Math.min(.03, .6 / items.length), ease: 'power2.out', overwrite: true, lazy: false });
+      else if (animate || !hasGsap) items.forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
       if (shareable && push) {
         const u = new URL(location.href);
         key === 'all' ? u.searchParams.delete('category') : u.searchParams.set('category', key);
@@ -243,7 +246,7 @@
     };
     chips.forEach(c => c.addEventListener('click', () => apply(c.dataset.filter, true)));
     const initial = shareable ? (new URLSearchParams(location.search).get('category') || 'all') : 'all';
-    apply(initial, false);
+    apply(initial, false, false);
     // keep filtered items visible even if their reveal animation has not run
     items.forEach(el => el.classList.add('is-filterable'));
   });
@@ -539,9 +542,13 @@
     const obj = { v: 0 };
     gsap.to(obj, { v: end, duration: reduceMotion ? 0 : 2.2, ease: 'power3.out', onUpdate: () => (el.textContent = Math.round(obj.v).toLocaleString('en-IN')) });
   }
-  $$('.stats [data-count]').forEach(el => {
-    ScrollTrigger.create({ trigger: el, start: 'top 90%', once: true, onEnter: () => countUp(el) });
-  });
+  const counterEls = $$('.stats [data-count]');
+  if ('IntersectionObserver' in window) {
+    const countIO = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { countIO.unobserve(e.target); countUp(e.target); }
+    }), { threshold: .4 });
+    counterEls.forEach(el => countIO.observe(el));
+  }
 
   /* ---------------------------------------------------------
      Homepage hero
@@ -659,13 +666,40 @@
   /* ---------------------------------------------------------
      Reveals
   --------------------------------------------------------- */
+  // Reveals check each pending element's live position on scroll (rAF-throttled). This survives
+  // images loading, refreshes that restore the scroll position and jumps straight to a section.
+  const revealEls = $$('.reveal');
   if (reduceMotion) {
-    gsap.set('.reveal', { opacity: 1, y: 0 });
+    gsap.set(revealEls, { opacity: 1, y: 0 });
   } else {
-    ScrollTrigger.batch('.reveal', {
-      start: 'top 90%',
-      onEnter: batch => gsap.to(batch, { opacity: 1, y: 0, duration: 1.1, stagger: .08, ease: 'expo.out', overwrite: true })
-    });
+    const pending = new Set(revealEls);
+    let ticking = false;
+    const checkReveals = () => {
+      ticking = false;
+      if (!pending.size) return;
+      const vh = window.innerHeight, past = [], inView = [];
+      pending.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (!r.width && !r.height) return;               // hidden (e.g. filtered out)
+        if (r.bottom < 0) past.push(el);                 // already scrolled past: show instantly
+        else if (r.top < vh) inView.push(el);            // anything visible on screen: animate
+      });
+      past.concat(inView).forEach(el => pending.delete(el));
+      if (past.length) gsap.set(past, { opacity: 1, y: 0, overwrite: true });
+      if (inView.length) gsap.to(inView, { opacity: 1, y: 0, duration: 1, stagger: Math.min(.08, .5 / inView.length), ease: 'expo.out', overwrite: true });
+    };
+    const requestCheck = () => { if (!ticking) { ticking = true; requestAnimationFrame(checkReveals); } };
+    window.addEventListener('scroll', requestCheck, { passive: true });
+    window.addEventListener('resize', requestCheck);
+    window.addEventListener('load', requestCheck);
+    lenis?.on('scroll', requestCheck);
+    onFilterChange.push(requestCheck);
+    // Content can move into view without any scrolling (fonts or images finishing loading),
+    // so also re-check whenever the layout changes.
+    document.fonts?.ready.then(requestCheck);
+    document.addEventListener('load', requestCheck, true);   // any image/iframe finishing
+    if ('ResizeObserver' in window) new ResizeObserver(requestCheck).observe(document.body);
+    requestCheck();
   }
 
   // Intro photo wall: duplicate each column for a seamless loop

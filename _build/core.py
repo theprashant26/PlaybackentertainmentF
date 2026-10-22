@@ -13,15 +13,26 @@ def esc(s):
 
 CDN_CSS = '''  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Stack+Sans+Headline:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://i.ytimg.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Stack+Sans+Headline:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">'''
 
 SWIPER_CSS = '  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.css">'
 
-SCRIPTS = '''  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+SCRIPTS = '''  <script>
+    // Safety net: if the animation libraries are slow or blocked, show the page anyway
+    setTimeout(function () {{
+      var d = document.documentElement;
+      if (d.classList.contains('js-ready')) return;
+      d.classList.remove('js'); document.body.classList.remove('is-loading');
+      var p = document.querySelector('.preloader'); if (p) p.remove();
+    }}, 5000);
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 {swiper}  <script>
     // Glass ribbon coloured with the logo palette (indigo "p" flowing into the red "b")
     window.PB_RIBBON_RAMP = [[150, 140, 200], [120, 108, 168], [84, 72, 156], [60, 48, 144], [128, 34, 96], [204, 24, 36], [216, 72, 60], [216, 120, 96]];

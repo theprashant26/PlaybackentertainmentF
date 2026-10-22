@@ -39,6 +39,32 @@
   --nav-h: 76px;
 }
 
+/* ---------- minimal reset (replaces Bootstrap; only its reboot + mt-3/4/5 were used) ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
+ul, ol { margin-top: 0; margin-bottom: 1rem; padding-left: 2rem; }
+small { font-size: .875em; }
+b, strong { font-weight: bolder; }
+sub, sup { position: relative; font-size: .75em; line-height: 0; vertical-align: baseline; }
+sup { top: -.5em; } sub { bottom: -.25em; }
+img, svg { vertical-align: middle; }
+label { display: inline-block; }
+button { border-radius: 0; }
+input, button, select, optgroup, textarea { margin: 0; font-family: inherit; font-size: inherit; line-height: inherit; }
+button, select { text-transform: none; }
+button, [type="button"], [type="reset"], [type="submit"] { -webkit-appearance: button; }
+button:not(:disabled), [type="button"]:not(:disabled), [type="submit"]:not(:disabled) { cursor: pointer; }
+textarea { resize: vertical; }
+fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+legend { float: left; width: 100%; padding: 0; margin-bottom: .5rem; line-height: inherit; }
+legend + * { clear: left; }
+summary { display: list-item; cursor: pointer; }
+[hidden] { display: none !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -1585,3 +1611,46 @@ p { margin: 0; }
 .next-proj { padding-bottom: clamp(28px, 3.5vw, 48px); }
 .footer { padding-top: clamp(40px, 5vw, 70px); }
 .footer__word { margin-top: clamp(28px, 4vw, 56px); }
+
+/* ===== Review fixes (Oct 2026) ===== */
+/* Safety net: if scripts are slow, reveal content after a moment instead of leaving it hidden */
+@keyframes pb-failsafe { to { opacity: 1; transform: none; } }
+.js:not(.js-ready) .reveal { animation: pb-failsafe .6s ease 2.2s forwards; }
+
+/* Stats: 4-up on desktop, clean 2x2 on tablet & phone */
+.stats__grid[style*="--cols:4"] .stat { grid-column: auto; border-top: 0; border-right: 1px solid var(--line); padding: 34px 22px 12px; }
+.stats__grid[style*="--cols:4"] .stat:first-child { padding-left: 0; }
+.stats__grid[style*="--cols:4"] .stat:last-child { border-right: 0; }
+@media (max-width: 991.98px) {
+  .stats__grid, .stats__grid[style*="--cols:4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats__grid[style*="--cols:4"] .stat { padding: 26px 16px 22px; }
+  .stats__grid[style*="--cols:4"] .stat:nth-child(odd) { padding-left: 0; border-right: 1px solid var(--line); }
+  .stats__grid[style*="--cols:4"] .stat:nth-child(even) { border-right: 0; }
+  .stats__grid[style*="--cols:4"] .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 767.98px) {
+  .stat__num { font-size: clamp(2.3rem, 11vw, 3rem); }
+  .stat p { font-size: 14px; }
+}
+
+/* CTA contact details: label above value, comfortable spacing */
+.cta__contact > div { display: flex; flex-direction: column; gap: 4px; }
+.cta__contact a { margin-top: 0; }
+@media (pointer: coarse) { .cta__contact a { padding-block: 2px; } }
+@media (max-width: 767.98px) { .cta__contact { display: grid; gap: 18px; margin-top: 32px; padding-top: 24px; } }
+
+/* Careers band: keep the ribbon clear of the text on phones */
+@media (max-width: 767.98px) {
+  .join__panel { padding-bottom: 150px; }
+  .join__panel .ribbon--r { left: 96%; top: 94%; opacity: .55; }
+}
+
+/* Lead statements (vision, mission, intro lines): calmer size on every page */
+.ccard p.ccard__lead { font-size: clamp(1.05rem, 1.45vw, 1.3rem); line-height: 1.45; letter-spacing: -0.01em; }
+.prose-lead--center p:first-child { font-size: clamp(1.12rem, 1.8vw, 1.5rem); line-height: 1.4; }
+
+/* Filters: show every category on phones (wrap instead of hidden sideways scroll) */
+@media (max-width: 767.98px) {
+  .filters { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; gap: 8px; }
+  .chip { flex-shrink: 1; padding: 8px 14px; font-size: 13px; }
+}

@@ -148,11 +148,11 @@ HOME_PROCESS = [('Discover', 'We listen to your goals, audience, timeline and bu
 # ---------------------------------------------------------------------------
 def home():
     reel_slides = [
-        ('assets/img/hero-dance.webp', 'Stage performance under concert lighting', 'Event production', 'Stage &amp; spectacle'),
-        ('assets/img/work/apccsm-medical-workshop/01.webp', 'Medical workshop delegates receiving certificates', 'Medical conferences', 'CME &amp; workshop coverage'),
-        ('assets/img/greenscreen.webp', 'Executives at a green-screen film shoot', 'Filming', 'Corporate films'),
-        ('assets/img/work/exhibition-stalls-sponsor-booths/01.webp', 'Branded sponsor stall at a conference', 'Exhibitions', 'Stall production'),
-        ('assets/img/portrait-fashion.webp', 'Outdoor portrait photograph', 'Photography', 'Portraits &amp; brands'),
+        ('assets/img/hero-dance-sm.webp', 'Stage performance under concert lighting', 'Event production', 'Stage &amp; spectacle'),
+        ('assets/img/work/apccsm-medical-workshop/01-sm.webp', 'Medical workshop delegates receiving certificates', 'Medical conferences', 'CME &amp; workshop coverage'),
+        ('assets/img/greenscreen-sm.webp', 'Executives at a green-screen film shoot', 'Filming', 'Corporate films'),
+        ('assets/img/work/exhibition-stalls-sponsor-booths/01-sm.webp', 'Branded sponsor stall at a conference', 'Exhibitions', 'Stall production'),
+        ('assets/img/portrait-fashion-sm.webp', 'Outdoor portrait photograph', 'Photography', 'Portraits &amp; brands'),
     ]
     act, lazy = ' class="is-active"', ' loading="lazy"'
     imgs = ''.join(f'<img decoding="async" src="~/{s}" alt="{a}"{act if i == 0 else lazy} data-cat="{c}" data-title="{t}">' for i, (s, a, c, t) in enumerate(reel_slides))
