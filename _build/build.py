@@ -7,7 +7,7 @@ Writes every page to <slug>/index.html so URLs match the handover sitemap
 sitemap.xml, robots.txt and 404.html. Content lives in data.py, services.py,
 blog.py and pages.py; layout and components live in core.py.
 """
-import os, sys, shutil, datetime as dt
+import os, sys, datetime as dt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -38,10 +38,20 @@ def main():
     outputs += [pages.project_page(p, i) for i, p in enumerate(PROJECTS)]
     outputs += [pages.post_page(p) for p in POSTS]
 
+    # Pages are overwritten in place (deleting and recreating folders clashes with OneDrive/editor
+    # file locks on Windows); only pages that are no longer generated get removed.
+    expected = {os.path.normpath(os.path.join(ROOT, path, 'index.html')) for path, _ in outputs}
     for d in generated_dirs(outputs):
         target = os.path.join(ROOT, d)
-        if os.path.isdir(target) and d not in ('assets', '_build'):
-            shutil.rmtree(target)
+        if not os.path.isdir(target) or d in ('assets', '_build'):
+            continue
+        for base, _, files in os.walk(target, topdown=False):
+            if 'index.html' in files and os.path.normpath(os.path.join(base, 'index.html')) not in expected:
+                os.remove(os.path.join(base, 'index.html'))
+            try:
+                os.rmdir(base)          # only succeeds if the folder is now empty
+            except OSError:
+                pass
     for path, html_ in outputs:
         write(path, html_)
 

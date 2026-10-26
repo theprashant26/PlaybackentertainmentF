@@ -142,9 +142,8 @@ VIDEO_TESTIMONIALS = [
 TEAM = [
     {'slug': 'raushan-s-kumar', 'name': 'Raushan S Kumar', 'role': 'Founder & Director', 'group': 'lead',
      'bio': ['Raushan S Kumar leads Playback Media & Events Hub with extensive experience in photography, videography, television production, filmmaking, and business development.',
-             'His professional journey began in media production, developing practical expertise across corporate films, commercial shoots, television assignments, professional photography, and visual storytelling.',
-             'As the business evolved, he expanded its services into digital marketing and subsequently into event management, particularly medical conferences, corporate events, and production services.',
-             'His vision is to build Playback into an integrated creative, digital, and event production company recognized for professional execution, innovation, and strong client relationships.']},
+             'His journey began in media production, across corporate films, commercial shoots, television assignments, and professional photography. He later expanded the business into digital marketing and event management, particularly medical conferences and corporate events.',
+             'His vision is to build Playback into an integrated creative, digital, and event production company known for professional execution and strong client relationships.']},
     {'slug': 'neha-singh', 'name': 'Neha Singh', 'role': 'Director', 'group': 'lead',
      'bio': ['Neha Singh contributes to the leadership and creative development of Playback Media & Events Hub.',
              'With a background in digital marketing and creative communication, she brings an understanding of branding, digital engagement, and organizational development.',

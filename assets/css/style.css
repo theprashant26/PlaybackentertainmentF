@@ -1888,3 +1888,19 @@ p { margin: 0; }
 .bi-x-lg::before { content: "\f659"; }
 .bi-youtube::before { content: "\f62b"; }
 /* ===== End generated block ===== */
+
+/* Team cards: a little more compact everywhere (homepage, About, Meet the Team) */
+.tcard__img, .tmini figure { aspect-ratio: 4 / 5; }
+@media (min-width: 992px) { .tcard--lead { grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); } }
+.tcard--lead .tcard__body { padding: clamp(20px, 2.2vw, 28px); }
+.tcard--lead h3 { font-size: clamp(1.4rem, 1.9vw, 1.65rem); }
+.tcard--lead .tcard__role { margin-bottom: 8px; }
+.tcard--lead .tcard__body p { font-size: 14px; margin-top: 6px; }
+@media (max-width: 991.98px) {
+  .tcard--lead .tcard__img { aspect-ratio: 16 / 11; }
+  .tcard--lead .tcard__img img { object-position: center 20%; }
+}
+@media (max-width: 575.98px) {
+  .tgrid--2 .tcard:not(.tcard--lead) .tcard__img { aspect-ratio: 1 / 1; }
+}
+
