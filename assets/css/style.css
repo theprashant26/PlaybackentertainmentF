@@ -707,6 +707,9 @@ p { margin: 0; }
 .cap.is-grad { background: var(--grad); color: #fff; border-color: transparent; }
 .cap.is-grad i { color: #fff; }
 .cap.is-outline { background: transparent; }
+/* Hover: every chip style (plain, outline, gradient) turns dark with white text */
+.cap:hover, .cap.is-outline:hover, .cap.is-grad:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.cap:hover i { color: #fff; }
 
 /* ---------- testimonials ---------- */
 .voices { position: relative; background: #fff; overflow: hidden; text-align: center; }
