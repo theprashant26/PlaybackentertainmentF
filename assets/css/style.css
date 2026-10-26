@@ -1285,7 +1285,7 @@ p { margin: 0; }
 /* ---------- team ---------- */
 .tgrid { display: grid; gap: 22px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .tgrid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.tgrid--narrow { max-width: 860px; }
+.tgrid--narrow { max-width: 640px; margin-inline: auto; }   /* digital team: same card size as the 4-up row, centred */
 .tcard { display: flex; flex-direction: column; border-radius: 28px; overflow: hidden; background: #fff; border: 1px solid var(--line); transition: transform .6s var(--ease), box-shadow .6s var(--ease); scroll-margin-top: 110px; }
 .tcard:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -34px rgba(40,30,110,.45); }
 .tcard__img { margin: 0; aspect-ratio: 3 / 4; overflow: hidden; background: #e8e6f1; }
@@ -1901,6 +1901,13 @@ p { margin: 0; }
   .tcard--lead .tcard__img img { object-position: center 20%; }
 }
 @media (max-width: 575.98px) {
-  .tgrid--2 .tcard:not(.tcard--lead) .tcard__img { aspect-ratio: 1 / 1; }
+  /* Phones: team cards (not the directors) become compact rows, small photo left, text right */
+  .tgrid--4:has(.tcard), .tgrid--narrow { grid-template-columns: 1fr; gap: 14px; }
+  .tcard:not(.tcard--lead) { display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: stretch; border-radius: 22px; }
+  .tcard:not(.tcard--lead) .tcard__img { aspect-ratio: auto; height: 100%; min-height: 150px; }
+  .tcard:not(.tcard--lead) .tcard__body { padding: 16px 16px 18px; }
+  .tcard:not(.tcard--lead) .tcard__body h3 { font-size: 18px; }
+  .tcard:not(.tcard--lead) .tcard__role { margin: 4px 0 6px; font-size: 11.5px; }
+  .tcard:not(.tcard--lead) .tcard__body p { font-size: 13.5px; margin-top: 6px; }
 }
 
