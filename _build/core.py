@@ -119,7 +119,7 @@ def header(active):
     <div class="container-x">
       <nav class="nav__bar" aria-label="Main">
         <a href="~/" class="brand" aria-label="{esc(SITE['name'])} — home">
-          <img decoding="async" src="~/assets/img/logo.png" alt="" width="30" height="40">
+          <img decoding="async" src="~/assets/img/logo-mark.webp" alt="" width="37" height="40">
           <span class="brand__text"><b>Playback</b><small>Media &amp; Events Hub</small></span>
         </a>
         <ul class="nav__menu">{menu}</ul>
@@ -181,7 +181,7 @@ def footer():
     <div class="container-x">
       <div class="footer__grid">
         <div class="footer__about">
-          <a href="~/" class="brand"><img decoding="async" src="~/assets/img/logo.png" alt="" width="30" height="40"><span class="brand__text"><b>Playback</b><small>Media &amp; Events Hub</small></span></a>
+          <a href="~/" class="brand"><img decoding="async" src="~/assets/img/logo-mark.webp" alt="" width="37" height="40"><span class="brand__text"><b>Playback</b><small>Media &amp; Events Hub</small></span></a>
           <p>A professional photography, videography, digital marketing, and event management company based in Delhi NCR.</p>
           <p class="footer__tag serif grad-text">{esc(SITE['tagline'])}</p>
           <div class="socials">{socials}</div>
@@ -201,6 +201,7 @@ def footer():
         </div>
       </div>
       <div class="footer__word" aria-hidden="true">Playback</div>
+      <div class="footer__sub" aria-hidden="true">Media &amp; Events Hub</div>
     </div>
     <div class="container-x">
       <div class="footer__bottom">
@@ -269,7 +270,8 @@ def page(path, *, title, desc, body, active='', og_image='assets/img/hero-dance.
   <meta property="og:url" content="{canonical}">
   <meta property="og:image" content="{og_image if og_image.startswith('http') else SITE['url'] + '/' + og_image}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="~/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="~/assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="~/assets/img/apple-touch-icon.png">
 {CDN_CSS}
 {SWIPER_CSS if swiper else ''}
   <link rel="stylesheet" href="~/assets/css/style.css">

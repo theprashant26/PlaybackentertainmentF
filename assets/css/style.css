@@ -1911,3 +1911,11 @@ p { margin: 0; }
   .tcard:not(.tcard--lead) .tcard__body p { font-size: 13.5px; margin-top: 6px; }
 }
 
+/* Footer: "Media & Events Hub" under the big Playback wordmark */
+.footer__sub {
+  margin: -.2em 0 clamp(18px, 2.6vw, 34px); text-align: center;
+  font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
+  font-size: clamp(.8rem, 2.1vw, 1.9rem); letter-spacing: .42em; padding-left: .42em;   /* padding balances the trailing letter-space */
+  color: var(--c-indigo); user-select: none;
+}
+
